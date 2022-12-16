@@ -3,6 +3,8 @@ version: '3'
 networks:
   laravel:
 
+volumes:
+  dbdata:
 
 services:
   app:
@@ -25,18 +27,20 @@ services:
       - laravel
 
   mysql:
-    image: mariadb:10.6
+    image: mariadb:latest
     restart: unless-stopped
     tty: true
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: homestead
-      MYSQL_USER: homestead
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+      - MARIADB_DATABASE=dodois-clickhouse-gate
+      - MARIADB_USER=laravel
+      - MARIADB_PASSWORD=!r26EyI_Po4HUWrU3Lsa
+      - MARIADB_ROOT_PASSWORD=#rLZ+JlsWLCHltH5drLT
+      - SERVICE_TAGS=dev
+      - SERVICE_NAME=mysql
+    volumes:
+      - dbdata:/var/lib/mysql
     networks:
       - laravel
 
@@ -87,6 +91,38 @@ services:
       - "5173:5173"
     working_dir: /var/www/html
     entrypoint: [ 'npm' ]
+    networks:
+      - laravel
+
+  scheduler:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - mysql
+    entrypoint: [ 'php', '/var/www/html/artisan', 'schedule:work' ]
+    networks:
+      - laravel
+
+  queue:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - mysql
+    entrypoint: [ 'php', '/var/www/html/artisan', 'queue:work' ]
     networks:
       - laravel
 
