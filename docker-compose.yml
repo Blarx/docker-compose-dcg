@@ -35,8 +35,8 @@ services:
     environment:
       - MARIADB_DATABASE=dodois-clickhouse-gate
       - MARIADB_USER=laravel
-      - MARIADB_PASSWORD=!r26EyI_Po4HUWrU3Lsa
-      - MARIADB_ROOT_PASSWORD=#rLZ+JlsWLCHltH5drLT
+      - MARIADB_PASSWORD=laravel-password
+      - MARIADB_ROOT_PASSWORD=root-password
       - SERVICE_TAGS=dev
       - SERVICE_NAME=mysql
     volumes:
